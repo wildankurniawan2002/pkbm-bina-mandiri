@@ -13,15 +13,15 @@ const AbsensiModel = {
   // Buka sesi absensi baru untuk satu rombel
   // Dipanggil Tutor saat memulai pertemuan
   // -----------------------------------------------------------
-  bukasSesi: async ({ tutor_id, rombel_id, mapel_id, tanggal, mode, durasi_timer = null }) => {
+  bukasSesi: async ({ tutor_id, rombel_id, mapel_id, tanggal, mode, durasi_timer = null, pertemuan_id = null }) => {
     const sql = `
       INSERT INTO sesi_absensi
-        (tutor_id, rombel_id, mapel_id, tanggal, mode, waktu_mulai, durasi_timer, status_sesi)
-      VALUES (?, ?, ?, ?, ?, NOW(), ?, 'aktif')
+        (tutor_id, rombel_id, mapel_id, tanggal, mode, waktu_mulai, durasi_timer, status_sesi, pertemuan_id)
+      VALUES (?, ?, ?, ?, ?, NOW(), ?, 'aktif', ?)
     `;
     const [result] = await pool.execute(sql, [
       tutor_id, rombel_id, mapel_id || null,
-      tanggal, mode, durasi_timer,
+      tanggal, mode, durasi_timer, pertemuan_id
     ]);
     return result.insertId;
   },

@@ -45,7 +45,7 @@ router.get(
 
 router.get(
   '/mapel/options',
-  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR),
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN, ROLES.TUTOR, ROLES.WARGA_BELAJAR),
   SiswaController.getMapelOptions
 );
 

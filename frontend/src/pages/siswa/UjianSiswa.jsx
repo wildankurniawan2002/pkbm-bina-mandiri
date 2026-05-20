@@ -8,6 +8,7 @@ function UjianSiswa() {
   const [profil, setProfil] = useState(null);
   const [mode, setMode] = useState('daftar');
   const [paketList, setPaketList] = useState([]);
+  const [pesertaUjian, setPesertaUjian] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -30,6 +31,13 @@ function UjianSiswa() {
         if (!profilSaya?.rombel_id) {
           setPaketList([]);
           return;
+        }
+
+        try {
+          const pesertaRes = await UjianAPI.getPesertaUjianSaya();
+          setPesertaUjian(pesertaRes.data.data || null);
+        } catch {
+          setPesertaUjian(null);
         }
 
         localStorage.setItem('pkbm_user', JSON.stringify({
@@ -129,6 +137,54 @@ function UjianSiswa() {
               </p>
             </div>
 
+            {pesertaUjian && (
+              <div className="card" style={{ marginBottom: '1.5rem', background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <div>
+                    <div style={{ fontWeight: 800, marginBottom: 6 }}>Status Administrasi Ujian</div>
+                    <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>
+                      {pesertaUjian.nama_periode} • {String(pesertaUjian.jenis_ujian || '').toUpperCase()} {pesertaUjian.semester}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span className={`badge ${badgePembayaranPeserta(pesertaUjian.status_pembayaran)}`}>
+                      Pembayaran: {formatBadgeLabel(pesertaUjian.status_pembayaran)}
+                    </span>
+                    <span className={`badge ${pesertaUjian.status_kelayakan === 'layak' ? 'badge-success' : 'badge-warning'}`}>
+                      Kelayakan: {formatBadgeLabel(pesertaUjian.status_kelayakan)}
+                    </span>
+                    {pesertaUjian.kartu_ujian_url && (
+                      <a
+                        className="btn btn-primary"
+                        href={pesertaUjian.kartu_ujian_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ padding: '6px 12px', fontSize: '0.82rem' }}
+                      >
+                        <i className="bi bi-file-earmark-pdf"></i> Kartu Ujian
+                      </a>
+                    )}
+                  </div>
+                </div>
+                {pesertaUjian.status_kelayakan !== 'layak' && (
+                  <div className="alert alert-warning" style={{ marginTop: '1rem' }}>
+                    <i className="bi bi-exclamation-circle-fill"></i>
+                    <span>
+                      Anda belum dapat mengikuti ujian sebelum pembayaran diverifikasi dan status Anda dinyatakan layak oleh Admin TU.
+                    </span>
+                  </div>
+                )}
+                {pesertaUjian.status_kelayakan === 'layak' && !pesertaUjian.kartu_ujian_url && (
+                  <div className="alert alert-info" style={{ marginTop: '1rem' }}>
+                    <i className="bi bi-info-circle-fill"></i>
+                    <span>
+                      Anda sudah layak mengikuti ujian. Kartu ujian PDF akan muncul di sini setelah dibuat oleh Admin TU.
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             {loading && <div className="loading-container"><div className="spinner"></div></div>}
             {!loading && error && <div className="alert alert-danger"><i className="bi bi-exclamation-triangle-fill"></i><span>{error}</span></div>}
 
@@ -177,6 +233,10 @@ function UjianSiswa() {
 
                         {paket.sesi_saya ? (
                           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>✓ Selesai</span>
+                        ) : pesertaUjian && pesertaUjian.status_kelayakan !== 'layak' ? (
+                          <button className="btn btn-secondary" style={{ flexShrink: 0 }} disabled title="Selesaikan administrasi ujian terlebih dahulu">
+                            <i className="bi bi-lock-fill"></i> Terkunci
+                          </button>
                         ) : paket.sumber_ujian === 'google_form' ? (
                           <a
                             className="btn btn-primary"
@@ -426,6 +486,20 @@ function UjianSiswa() {
   }
 
   return null;
+}
+
+function badgePembayaranPeserta(status) {
+  const map = {
+    belum_bayar: 'badge-warning',
+    menunggu_verifikasi: 'badge-info',
+    ditolak: 'badge-danger',
+    lunas: 'badge-success',
+  };
+  return map[status] || 'badge-neutral';
+}
+
+function formatBadgeLabel(value) {
+  return String(value || '-').replaceAll('_', ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export default UjianSiswa;

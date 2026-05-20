@@ -11,6 +11,23 @@ import pool from '../config/db.js';
 // ========================
 export const MateriModel = {
 
+  findNextUrutanByRombel: async (rombel_id, mapel_id = null) => {
+    let sql = `
+      SELECT COALESCE(MAX(NULLIF(urutan, 0)), 0) + 1 AS next_urutan
+      FROM materi_pembelajaran
+      WHERE rombel_id = ?
+    `;
+    const params = [rombel_id];
+
+    if (mapel_id) {
+      sql += ' AND mapel_id = ?';
+      params.push(mapel_id);
+    }
+
+    const [rows] = await pool.execute(sql, params);
+    return rows[0]?.next_urutan || 1;
+  },
+
   findByRombel: async (rombel_id, mapel_id = null) => {
     let sql = `
       SELECT m.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor
@@ -38,15 +55,20 @@ export const MateriModel = {
     return rows[0];
   },
 
-  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan }) => {
+  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, pertemuan_id }) => {
+    const finalUrutan = Number(urutan) > 0
+      ? Number(urutan)
+      : await MateriModel.findNextUrutanByRombel(rombel_id, mapel_id);
+
     const sql = `
       INSERT INTO materi_pembelajaran
-        (rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, is_published)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+        (rombel_id, mapel_id, tutor_id, judul, deskripsi, tipe, path_file, url, urutan, is_published, pertemuan_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
     `;
     const [result] = await pool.execute(sql, [
       rombel_id, mapel_id, tutor_id, judul,
-      deskripsi || null, tipe, path_file || null, url || null, urutan || 0,
+      deskripsi || null, tipe, path_file || null, url || null, finalUrutan,
+      pertemuan_id || null
     ]);
     return result.insertId;
   },
@@ -78,7 +100,7 @@ export const MateriModel = {
 // ========================
 export const TugasModel = {
 
-  findByRombel: async (rombel_id, mapel_id = null) => {
+  findByRombel: async (rombel_id, mapel_id = null, { warga_belajar_id = null } = {}) => {
     let sql = `
       SELECT t.*, mp.nama AS nama_mapel, u.nama_lengkap AS nama_tutor,
         (SELECT COUNT(*) FROM pengumpulan_tugas pt WHERE pt.tugas_id = t.id) AS jumlah_terkumpul
@@ -91,7 +113,44 @@ export const TugasModel = {
     if (mapel_id) { sql += ` AND t.mapel_id = ?`; params.push(mapel_id); }
     sql += ` ORDER BY t.deadline ASC`;
     const [rows] = await pool.execute(sql, params);
-    return rows;
+
+    if (!warga_belajar_id || rows.length === 0) {
+      return rows;
+    }
+
+    const tugasIds = rows.map((row) => row.id);
+    const placeholders = tugasIds.map(() => '?').join(',');
+    const [pengumpulanRows] = await pool.execute(
+      `
+        SELECT *
+        FROM pengumpulan_tugas
+        WHERE warga_belajar_id = ? AND tugas_id IN (${placeholders})
+      `,
+      [warga_belajar_id, ...tugasIds]
+    );
+
+    const pengumpulanMap = {};
+    pengumpulanRows.forEach((row) => {
+      pengumpulanMap[row.tugas_id] = row;
+    });
+
+    return rows.map((row) => ({
+      ...row,
+      pengumpulan_saya: pengumpulanMap[row.id] || null,
+    }));
+  },
+
+  findPengumpulanByTugasDanWb: async (tugas_id, warga_belajar_id) => {
+    const [rows] = await pool.execute(
+      `
+        SELECT *
+        FROM pengumpulan_tugas
+        WHERE tugas_id = ? AND warga_belajar_id = ?
+        LIMIT 1
+      `,
+      [tugas_id, warga_belajar_id]
+    );
+    return rows[0] || null;
   },
 
   findById: async (id) => {
@@ -118,13 +177,13 @@ export const TugasModel = {
     return { ...tugas[0], pengumpulan };
   },
 
-  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks }) => {
+  create: async ({ rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks, pertemuan_id }) => {
     const sql = `
-      INSERT INTO tugas (rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO tugas (rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks, pertemuan_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const [result] = await pool.execute(sql, [
-      rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks || 100,
+      rombel_id, mapel_id, tutor_id, judul, deskripsi, deadline, nilai_maks || 100, pertemuan_id || null
     ]);
     return result.insertId;
   },

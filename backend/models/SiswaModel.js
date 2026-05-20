@@ -181,15 +181,17 @@ const SiswaModel = {
         mp.id,
         mp.nama,
         mp.kode,
-        mp.jenjang
+        mp.jenjang,
+        u.nama_lengkap AS nama_tutor
       FROM mata_pelajaran mp
       LEFT JOIN rombel_mapel rm ON rm.mapel_id = mp.id
-      WHERE 1=1
+      LEFT JOIN users u ON u.id = rm.tutor_id
+      WHERE mp.is_active = 1
     `;
     const params = [];
 
     if (rombel_id) {
-      sql += ` AND (rm.rombel_id = ? OR rm.rombel_id IS NULL)`;
+      sql += ` AND rm.rombel_id = ? AND rm.is_visible = 1`;
       params.push(rombel_id);
     }
 

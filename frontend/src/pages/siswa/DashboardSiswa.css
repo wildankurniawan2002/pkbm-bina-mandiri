@@ -41,7 +41,7 @@
   border-radius: var(--radius-xl);
   padding: 1.5rem 2rem;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 1.25rem;
   margin-bottom: 2rem;
   box-shadow: 0 8px 24px rgba(26, 107, 60, 0.25);
@@ -64,12 +64,60 @@
   flex-shrink: 0;
 }
 
+.profil-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profil-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .profil-nama {
   font-size: var(--text-xl);
   font-weight: 800;
   color: white;
-  margin-bottom: 8px;
+  margin-bottom: 0.2rem;
 }
+
+.profil-role {
+  margin: 0;
+  font-size: 0.98rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
+}
+
+.profil-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.profil-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.14);
+  color: white;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.profil-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+}
+
 
 .profil-meta {
   display: flex;
@@ -193,6 +241,13 @@
     flex-direction: column;
     text-align: center;
     padding: 1.25rem;
+    align-items: center;
+  }
+
+  .profil-header-top {
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
   }
 
   .profil-nama {

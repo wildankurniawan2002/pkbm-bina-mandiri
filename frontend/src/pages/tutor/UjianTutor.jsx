@@ -650,7 +650,7 @@ function UjianTutor() {
                   </div>
                   <button className="btn btn-primary" style={{ height: 38 }}
                     onClick={() => setRombelDipilih(inputRombel)} disabled={!inputRombel}>
-                    <i className="bi bi-arrow-right-circle" /> Muat Paket
+                    <i className="bi bi-search" /> Cari Paket
                   </button>
                   <button className="btn btn-secondary" style={{ height: 38 }}
                     onClick={() => { setShowFormPaket(true); setPaketFeedback({ type: '', msg: '' }); }}

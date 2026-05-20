@@ -345,6 +345,46 @@ export const LmsAPI = {
 
 // ── UJIAN ONLINE ─────────────────────────────────────────────
 export const UjianAPI = {
+  // Periode Ujian
+  getAllPeriode: (params = {}) =>
+    apiClient.get('/periode-ujian', { params }),
+
+  getPeriodeById: (id) =>
+    apiClient.get(`/periode-ujian/${id}`),
+
+  createPeriode: (payload) =>
+    apiClient.post('/periode-ujian', payload),
+
+  updatePeriode: (id, payload) =>
+    apiClient.put(`/periode-ujian/${id}`, payload),
+
+  updatePeriodeStatus: (id, is_active) =>
+    apiClient.patch(`/periode-ujian/${id}/status`, { is_active }),
+
+  // Peserta Ujian Administratif
+  getPesertaUjian: (params = {}) =>
+    apiClient.get('/ujian/peserta', { params }),
+
+  getPesertaUjianById: (id) =>
+    apiClient.get(`/ujian/peserta/${id}`),
+
+  generatePesertaUjian: (payload) =>
+    apiClient.post('/ujian/peserta/generate', payload),
+
+  verifyPembayaranUjian: (id, payload) =>
+    apiClient.put(`/ujian/peserta/${id}/verifikasi-pembayaran`, payload),
+
+  updateKelayakanUjian: (id, payload) =>
+    apiClient.put(`/ujian/peserta/${id}/kelayakan`, payload),
+
+  generateKartuUjian: (id) =>
+    apiClient.post(`/ujian/peserta/${id}/generate-kartu`),
+
+  getPesertaUjianSaya: () =>
+    apiClient.get('/ujian/peserta/saya'),
+
+  getPesertaUjianMapelSaya: () =>
+    apiClient.get('/ujian/peserta/saya/mapel'),
 
   // Bank Soal
   getAllSoal: (params = {}) =>
@@ -442,6 +482,83 @@ export const KlubAPI = {
   // DELETE /api/klub/:id — Hapus klub
   hapus: (id) =>
     apiClient.delete(`/klub/${id}`),
+};
+
+
+// ── AKADEMIK: MASTER MAPEL & MAPEL PER ROMBEL ──────────────
+export const AkademikAPI = {
+  getAllMapel: (params = {}) =>
+    apiClient.get('/akademik/mapel', { params }),
+
+  getMapelById: (id) =>
+    apiClient.get(`/akademik/mapel/${id}`),
+
+  createMapel: (payload) =>
+    apiClient.post('/akademik/mapel', payload),
+
+  updateMapel: (id, payload) =>
+    apiClient.put(`/akademik/mapel/${id}`, payload),
+
+  updateMapelStatus: (id, is_active) =>
+    apiClient.patch(`/akademik/mapel/${id}/status`, { is_active }),
+
+  getRombelMapel: (params = {}) =>
+    apiClient.get('/akademik/rombel-mapel', { params }),
+
+  createRombelMapel: (payload) =>
+    apiClient.post('/akademik/rombel-mapel', payload),
+
+  updateRombelMapel: (id, payload) =>
+    apiClient.put(`/akademik/rombel-mapel/${id}`, payload),
+
+  updateRombelMapelVisibility: (id, is_visible) =>
+    apiClient.patch(`/akademik/rombel-mapel/${id}/visibility`, { is_visible }),
+
+  deleteRombelMapel: (id) =>
+    apiClient.delete(`/akademik/rombel-mapel/${id}`),
+
+  getRombelOptions: (params = {}) =>
+    apiClient.get('/akademik/options/rombel', { params }),
+
+  getTutorOptions: () =>
+    apiClient.get('/akademik/options/tutor'),
+};
+
+
+// ── PERTEMUAN TERPADU (LMS-STYLE) ────────────────────────────
+export const PertemuanAPI = {
+
+  // GET /api/pertemuan
+  getAll: (rombelId, mapelId) =>
+    apiClient.get('/pertemuan', { params: { rombel_id: rombelId, mapel_id: mapelId } }),
+
+  // GET /api/pertemuan/:id
+  getDetail: (id) =>
+    apiClient.get(`/pertemuan/${id}`),
+
+  // POST /api/pertemuan
+  create: (payload) =>
+    apiClient.post('/pertemuan', payload),
+
+  // PUT /api/pertemuan/:id
+  update: (id, payload) =>
+    apiClient.put(`/pertemuan/${id}`, payload),
+
+  // PUT /api/pertemuan/:id/publish
+  togglePublish: (id, is_published) =>
+    apiClient.put(`/pertemuan/${id}/publish`, { is_published }),
+
+  // DELETE /api/pertemuan/:id
+  delete: (id) =>
+    apiClient.delete(`/pertemuan/${id}`),
+
+  // POST /api/pertemuan/:id/komentar
+  addComment: (id, isi) =>
+    apiClient.post(`/pertemuan/${id}/komentar`, { isi }),
+
+  // DELETE /api/pertemuan/komentar/:commentId
+  deleteComment: (commentId) =>
+    apiClient.delete(`/pertemuan/komentar/${commentId}`),
 };
 
 

@@ -9,6 +9,7 @@ uploads/spmb/*
 uploads/tugas/*
 uploads/materi/*
 uploads/bukti_bayar/*
+uploads/kartu_ujian/*
 !uploads/**/.gitkeep
 
 # Logs

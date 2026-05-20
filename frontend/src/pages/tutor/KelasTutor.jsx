@@ -411,8 +411,9 @@ function KelasTutor() {
                     </div>
                   ) : (
                     <div style={{ padding: '0 1rem 1rem' }}>
-                      {materiList.map(m => {
+                      {materiList.map((m, index) => {
                         const ti = TIPE_ICON[m.tipe] || TIPE_ICON.dokumen;
+                        const nomorUrut = Number(m.urutan) > 0 ? Number(m.urutan) : index + 1;
                         return (
                           <div key={m.id} className="mobile-list-row" style={{
                             padding: '0.9rem 0.75rem',
@@ -435,7 +436,7 @@ function KelasTutor() {
                                 {m.judul}
                               </div>
                               <div style={{ color: 'var(--color-text-muted)', fontSize: '0.78rem', marginTop: 2 }}>
-                                {m.nama_mapel || 'Umum'} · Urutan #{m.urutan}
+                                {m.nama_mapel || 'Umum'} · Urutan #{nomorUrut}
                               </div>
                             </div>
 

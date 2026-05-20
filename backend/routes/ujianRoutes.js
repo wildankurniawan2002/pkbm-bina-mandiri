@@ -5,10 +5,45 @@
 
 import { Router } from 'express';
 import { BankSoalController, PaketUjianController, SesiUjianController } from '../controllers/UjianController.js';
+import { PesertaUjianController } from '../controllers/UjianAdministrasiController.js';
 import { verifyToken, checkRole, ROLES } from '../middlewares/authMiddleware.js';
 
 const router = Router();
 router.use(verifyToken);
+
+// ── PESERTA UJIAN & KARTU UJIAN  /api/ujian/peserta ───────────
+router.get('/peserta/saya',
+  checkRole(ROLES.WARGA_BELAJAR),
+  PesertaUjianController.getMine
+);
+router.get('/peserta/saya/mapel',
+  checkRole(ROLES.WARGA_BELAJAR),
+  PesertaUjianController.getMyMapel
+);
+router.get('/peserta',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.getAll
+);
+router.get('/peserta/:id',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.getById
+);
+router.post('/peserta/generate',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.generatePeserta
+);
+router.put('/peserta/:id/verifikasi-pembayaran',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.verifyPembayaran
+);
+router.put('/peserta/:id/kelayakan',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.updateKelayakan
+);
+router.post('/peserta/:id/generate-kartu',
+  checkRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  PesertaUjianController.generateKartu
+);
 
 // ── BANK SOAL  /api/ujian/soal ───────────────────────────────
 // GET    /api/ujian/soal           — Daftar soal (filter: mapel, jenjang, jenis)

@@ -195,7 +195,14 @@ function ProfileField({ field, value, onChange }) {
   );
 }
 
-export default function ProfileEditorCard({ user, onUserUpdate, onProfileUpdate, compact = false }) {
+export default function ProfileEditorCard({
+  user,
+  onUserUpdate,
+  onProfileUpdate,
+  compact = false,
+  hideCard = false,
+  triggerRenderer = null,
+}) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -317,6 +324,7 @@ export default function ProfileEditorCard({ user, onUserUpdate, onProfileUpdate,
 
   return (
     <>
+      {hideCard ? (triggerRenderer ? triggerRenderer(() => setModalOpen(true)) : null) : (
       <div className="card" style={{ marginBottom: compact ? '1rem' : '2rem' }}>
         <div
           className="mobile-toolbar"
@@ -382,6 +390,7 @@ export default function ProfileEditorCard({ user, onUserUpdate, onProfileUpdate,
           </div>
         )}
       </div>
+      )}
 
       {modalOpen && (
         <ProfileModal title="Edit Profil" onClose={() => setModalOpen(false)}>

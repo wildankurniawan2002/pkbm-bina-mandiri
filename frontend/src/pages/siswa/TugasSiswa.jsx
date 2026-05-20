@@ -78,6 +78,7 @@ function TugasSiswa() {
                   const sudah  = !!t.pengumpulan_saya;
                   const nilai  = t.pengumpulan_saya?.nilai;
                   const isOpen = formTerbuka === t.id;
+                  const tampilkanStatusDeadline = !sudah;
 
                   return (
                     <div key={t.id} className="card" style={{ padding: '1.25rem' }}>
@@ -108,9 +109,11 @@ function TugasSiswa() {
                             )}
                           </div>
                           <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-                            <span style={{ fontSize: 'var(--text-xs)', color: dl.color, fontWeight: 600 }}>
-                              <i className="bi bi-clock"></i> {dl.label}
-                            </span>
+                            {tampilkanStatusDeadline && (
+                              <span style={{ fontSize: 'var(--text-xs)', color: dl.color, fontWeight: 600 }}>
+                                <i className="bi bi-clock"></i> {dl.label}
+                              </span>
+                            )}
                             {t.deadline && (
                               <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
                                 Deadline: {new Date(t.deadline).toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })}
@@ -161,17 +164,20 @@ function TugasSiswa() {
                           borderRadius: 'var(--radius-md)',
                           padding: '0.75rem 1rem',
                           fontSize: 'var(--text-sm)',
-                          display: 'flex', alignItems: 'center', gap: 10,
+                          display: 'flex', alignItems: 'flex-start', gap: 10,
                         }}>
                           <i className={`bi ${nilai != null ? 'bi-patch-check-fill' : 'bi-check-circle-fill'}`}
                              style={{ color: nilai != null ? 'var(--color-success)' : 'var(--color-siswa)', fontSize: '1.1rem' }}></i>
                           <div>
-                            <strong>
-                              {nilai != null ? `Tugas dinilai: ${nilai} / 100` : 'Tugas berhasil dikumpulkan'}
-                            </strong>
-                            {t.pengumpulan_saya?.feedback && (
+                            <strong>{nilai != null ? 'Tugas sudah dinilai' : 'Tugas berhasil dikumpulkan'}</strong>
+                            {t.pengumpulan_saya?.catatan_siswa && (
+                              <p style={{ margin: '6px 0 0', color: 'var(--color-text-muted)' }}>
+                                Catatan Anda: "{t.pengumpulan_saya.catatan_siswa}"
+                              </p>
+                            )}
+                            {t.pengumpulan_saya?.feedback_tutor && (
                               <p style={{ margin: '4px 0 0', color: 'var(--color-text-muted)' }}>
-                                Catatan Tutor: {t.pengumpulan_saya.feedback}
+                                Catatan Tutor: {t.pengumpulan_saya.feedback_tutor}
                               </p>
                             )}
                           </div>
@@ -204,7 +210,7 @@ function FormKumpulkan({ tugasId, onSuccess }) {
     try {
       const fd = new FormData();
       fd.append('file',    file);
-      fd.append('catatan', catatan);
+      fd.append('catatan_siswa', catatan);
       const res = await LmsAPI.kumpulkanTugas(tugasId, fd);
       onSuccess(res.data.data);
     } catch (err) {

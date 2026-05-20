@@ -21,6 +21,7 @@ function toAssetUrl(path) {
 const MENU_PER_ROLE = {
   warga_belajar: [
     { path: '/dashboard/siswa',          icon: 'bi-house-fill',         label: 'Beranda' },
+    { path: '/dashboard/siswa/ruang-belajar', icon: 'bi-mortarboard-fill',  label: 'Ruang Belajar' },
     { path: '/dashboard/siswa/materi',   icon: 'bi-book-fill',          label: 'Materi Belajar' },
     { path: '/dashboard/siswa/tugas',    icon: 'bi-pencil-square',      label: 'Tugas' },
     { path: '/dashboard/siswa/absensi',  icon: 'bi-calendar-check-fill', label: 'Absensi Saya' },
@@ -32,11 +33,13 @@ const MENU_PER_ROLE = {
     { path: '/dashboard/admin',          icon: 'bi-speedometer2',       label: 'Dashboard' },
     { path: '/dashboard/admin/spmb',     icon: 'bi-person-plus-fill',   label: 'Verifikasi SPMB' },
     { path: '/dashboard/admin/siswa',    icon: 'bi-people-fill',        label: 'Data Siswa' },
+    { path: '/dashboard/admin/peserta-ujian', icon: 'bi-file-earmark-check-fill', label: 'Peserta Ujian' },
     { path: '/dashboard/admin/tagihan',  icon: 'bi-cash-stack',         label: 'Keuangan' },
     { path: '/dashboard/admin/klub',     icon: 'bi-trophy-fill',        label: 'Klub Minat Bakat' },
   ],
   tutor: [
     { path: '/dashboard/tutor',          icon: 'bi-speedometer2',       label: 'Dashboard' },
+    { path: '/dashboard/siswa/ruang-belajar', icon: 'bi-mortarboard-fill',  label: 'Ruang Belajar' },
     { path: '/dashboard/tutor/kelas',    icon: 'bi-journal-text',       label: 'Kelas Saya' },
     { path: '/dashboard/tutor/absensi',  icon: 'bi-calendar-check',     label: 'Absensi' },
     { path: '/dashboard/tutor/ujian',    icon: 'bi-file-earmark-check', label: 'Soal & Ujian' },
@@ -46,8 +49,13 @@ const MENU_PER_ROLE = {
   ],
   super_admin: [
     { path: '/dashboard/admin',          icon: 'bi-speedometer2',       label: 'Dashboard' },
+    { path: '/dashboard/siswa/ruang-belajar', icon: 'bi-mortarboard-fill',  label: 'Ruang Belajar' },
     { path: '/dashboard/admin/spmb',     icon: 'bi-person-plus-fill',   label: 'Verifikasi SPMB' },
     { path: '/dashboard/admin/siswa',    icon: 'bi-people-fill',        label: 'Data Siswa' },
+    { path: '/dashboard/admin/periode-ujian', icon: 'bi-calendar3', label: 'Periode Ujian' },
+    { path: '/dashboard/admin/peserta-ujian', icon: 'bi-file-earmark-check-fill', label: 'Peserta Ujian' },
+    { path: '/dashboard/admin/master-mapel', icon: 'bi-journal-bookmark-fill', label: 'Master Mapel' },
+    { path: '/dashboard/admin/mapel-rombel', icon: 'bi-diagram-3-fill', label: 'Mapel per Rombel' },
     { path: '/dashboard/admin/tagihan',  icon: 'bi-cash-stack',         label: 'Keuangan' },
     { path: '/dashboard/admin/klub',     icon: 'bi-trophy-fill',        label: 'Klub Minat Bakat' },
     { path: '/dashboard/admin/users',    icon: 'bi-shield-lock-fill',   label: 'Manajemen User' },
@@ -83,17 +91,17 @@ function Sidebar({ user }) {
     <>
       <button
         type="button"
-        className="mobile-sidebar-toggle mobile-only"
+        className={`mobile-sidebar-toggle ${mobileOpen ? 'open' : ''}`}
         onClick={() => setMobileOpen((prev) => !prev)}
         aria-label={mobileOpen ? 'Tutup menu' : 'Buka menu'}
         aria-expanded={mobileOpen}
       >
-        <i className={`bi ${mobileOpen ? 'bi-x-lg' : 'bi-list'}`}></i>
+        <i className={`bi ${mobileOpen ? 'bi-arrow-left-short' : 'bi-list'}`}></i>
       </button>
 
       {mobileOpen ? (
         <div
-          className="mobile-sidebar-backdrop mobile-only"
+          className="mobile-sidebar-backdrop"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />

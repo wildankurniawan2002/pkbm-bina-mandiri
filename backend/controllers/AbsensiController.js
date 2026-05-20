@@ -22,7 +22,7 @@ const AbsensiController = {
   // -----------------------------------------------------------
   bukaSesi: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, tanggal, mode, durasi_timer } = req.body;
+      const { rombel_id, mapel_id, tanggal, mode, durasi_timer, pertemuan_id } = req.body;
 
       if (!rombel_id || !tanggal || !mode) {
         return res.status(400).json({
@@ -45,6 +45,7 @@ const AbsensiController = {
         tanggal,
         mode,
         durasi_timer: durasi_timer ? parseInt(durasi_timer) : null,
+        pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
       });
 
       return res.status(201).json({

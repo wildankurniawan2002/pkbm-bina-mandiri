@@ -48,7 +48,7 @@ export const MateriController = {
   // POST /api/materi
   create: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, judul, deskripsi, tipe, url, urutan } = req.body;
+      const { rombel_id, mapel_id, judul, deskripsi, tipe, url, urutan, pertemuan_id } = req.body;
 
       if (!rombel_id || !mapel_id || !judul || !tipe) {
         return res.status(400).json({ success: false, message: 'Field wajib: rombel_id, mapel_id, judul, tipe.' });
@@ -61,7 +61,8 @@ export const MateriController = {
         judul, deskripsi, tipe,
         path_file: req.file ? req.file.path : null,
         url:       url || null,
-        urutan:    urutan ? parseInt(urutan) : 0,
+        urutan:    urutan ? parseInt(urutan) : null,
+        pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
       });
 
       return res.status(201).json({ success: true, message: 'Materi berhasil ditambahkan.', data: { id } });
@@ -109,7 +110,21 @@ export const TugasController = {
     try {
       const { rombelId } = req.params;
       const { mapel_id } = req.query;
-      const tugas = await TugasModel.findByRombel(parseInt(rombelId), mapel_id ? parseInt(mapel_id) : null);
+      let wargaBelajarId = null;
+
+      if (req.user.role === 'warga_belajar') {
+        const wb = await SiswaModel.findByUserId(req.user.id);
+        if (!wb) {
+          return res.status(404).json({ success: false, message: 'Profil WB tidak ditemukan.' });
+        }
+        wargaBelajarId = wb.id;
+      }
+
+      const tugas = await TugasModel.findByRombel(
+        parseInt(rombelId),
+        mapel_id ? parseInt(mapel_id) : null,
+        { warga_belajar_id: wargaBelajarId }
+      );
       return res.status(200).json({ success: true, data: tugas });
     } catch (error) {
       console.error('[TugasController.getByRombel]', error);
@@ -132,13 +147,14 @@ export const TugasController = {
   // POST /api/tugas — Tutor membuat tugas baru
   create: async (req, res) => {
     try {
-      const { rombel_id, mapel_id, judul, deskripsi, deadline, nilai_maks } = req.body;
+      const { rombel_id, mapel_id, judul, deskripsi, deadline, nilai_maks, pertemuan_id } = req.body;
       if (!rombel_id || !mapel_id || !judul || !deskripsi || !deadline) {
         return res.status(400).json({ success: false, message: 'Field wajib: rombel_id, mapel_id, judul, deskripsi, deadline.' });
       }
       const id = await TugasModel.create({
         rombel_id: parseInt(rombel_id), mapel_id: parseInt(mapel_id),
         tutor_id: req.user.id, judul, deskripsi, deadline, nilai_maks,
+        pertemuan_id: pertemuan_id ? parseInt(pertemuan_id) : null
       });
       return res.status(201).json({ success: true, message: 'Tugas berhasil dibuat.', data: { id } });
     } catch (error) {
@@ -162,7 +178,13 @@ export const TugasController = {
         catatan_siswa: req.body.catatan_siswa || null,
       });
 
-      return res.status(200).json({ success: true, message: 'Tugas berhasil dikumpulkan.' });
+      const pengumpulan = await TugasModel.findPengumpulanByTugasDanWb(parseInt(req.params.id), wb.id);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Tugas berhasil dikumpulkan.',
+        data: pengumpulan || null,
+      });
     } catch (error) {
       console.error('[TugasController.kumpulkan]', error);
       return res.status(500).json({ success: false, message: 'Gagal mengumpulkan tugas.' });

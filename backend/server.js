@@ -7,6 +7,8 @@
 import express from 'express';
 import cors    from 'cors';
 import dotenv  from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { testConnection } from './config/db.js';
 
 // ── Import semua routes ──────────────────────────────────────
@@ -19,11 +21,17 @@ import absensiRoutes from './routes/absensiRoutes.js';
 import materiRoutes  from './routes/materiRoutes.js';
 import ujianRoutes   from './routes/ujianRoutes.js';
 import klubRoutes    from './routes/klubRoutes.js';
+import pertemuanRoutes from './routes/pertemuanRoutes.js';
+import akademikRoutes from './routes/akademikRoutes.js';
+import periodeUjianRoutes from './routes/periodeUjianRoutes.js';
 
 dotenv.config();
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const uploadsDir = path.resolve(__dirname, 'uploads');
 const allowedOrigins = (
   process.env.FRONTEND_URLS ||
   process.env.FRONTEND_URL ||
@@ -50,7 +58,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Sajikan folder uploads sebagai file statis
 // Akses: http://localhost:3000/uploads/spmb/namafile.pdf
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(uploadsDir));
 
 // ============================================================
 // ROUTES API  — semua diawali /api
@@ -64,6 +72,9 @@ app.use('/api/absensi', absensiRoutes);  // Absensi dual-mode
 app.use('/api/lms',     materiRoutes);   // KBM: materi, tugas, jadwal
 app.use('/api/ujian',   ujianRoutes);    // Bank soal & ujian online
 app.use('/api/klub',    klubRoutes);     // Klub minat bakat
+app.use('/api/pertemuan', pertemuanRoutes); // Modul Pertemuan Terpadu
+app.use('/api/akademik', akademikRoutes); // Master mapel & mapel per rombel
+app.use('/api/periode-ujian', periodeUjianRoutes); // Periode ujian UTS/UAS
 
 // ============================================================
 // HEALTH CHECK

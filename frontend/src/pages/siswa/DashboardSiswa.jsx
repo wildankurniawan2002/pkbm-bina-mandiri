@@ -12,42 +12,35 @@
 // ============================================================
 
 import { useState, useEffect } from 'react';
-import { AuthAPI, SiswaAPI, AbsensiAPI, TagihanAPI } from '../../services/api.js';
+import { SiswaAPI, AbsensiAPI, TagihanAPI } from '../../services/api.js';
 import Sidebar from '../../components/Sidebar.jsx';
 import ProfileEditorCard from '../../components/ProfileEditorCard.jsx';
 import './DashboardSiswa.css';
+
+function toAssetUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  const apiUrl = import.meta.env.VITE_API_URL || '';
+  const origin = apiUrl.replace(/\/api$/, '');
+  return `${origin}/${String(path).replace(/\\/g, '/')}`;
+}
 
 function DashboardSiswa() {
   // ── Ambil data user dari localStorage (sudah disimpan saat login) ──
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
   // ── State: Data Profil Siswa ─────────────────────────────
-  const [profil, setProfil]           = useState(null);
+  const [profil, setProfil] = useState(null);
   const [loadingProfil, setLoadingProfil] = useState(true);
-  const [errorProfil, setErrorProfil]   = useState('');
+  const [errorProfil, setErrorProfil] = useState('');
 
   // ── State: Rekap Kehadiran ───────────────────────────────
-  const [rekapAbsensi, setRekapAbsensi]     = useState(null);
+  const [rekapAbsensi, setRekapAbsensi] = useState(null);
   const [loadingAbsensi, setLoadingAbsensi] = useState(true);
 
   // ── State: Tagihan Aktif ─────────────────────────────────
-  const [tagihan, setTagihan]         = useState(null);
+  const [tagihan, setTagihan] = useState(null);
   const [loadingTagihan, setLoadingTagihan] = useState(true);
-  const [editDataDiriOpen, setEditDataDiriOpen] = useState(false);
-  const [savingDataDiri, setSavingDataDiri] = useState(false);
-  const [dataDiriError, setDataDiriError] = useState('');
-  const [dataDiriSuccess, setDataDiriSuccess] = useState('');
-  const [formDataDiri, setFormDataDiri] = useState({
-    nama_lengkap: '',
-    email: '',
-    nik: '',
-    tanggal_lahir: '',
-    jenis_kelamin: 'L',
-    no_telp: '',
-    nama_wali: '',
-    alamat: '',
-  });
-
   // ============================================================
   // useEffect — Fetch semua data saat komponen pertama kali dimuat
   // Dependency array [] berarti hanya dijalankan sekali (on mount)
@@ -110,66 +103,6 @@ function DashboardSiswa() {
     fetchTagihan();
 
   }, []); // [] = hanya dijalankan sekali saat komponen mount
-
-  useEffect(() => {
-    if (!profil) return;
-    setFormDataDiri({
-      nama_lengkap: profil.nama_lengkap || '',
-      email: profil.email || '',
-      nik: profil.nik || '',
-      tanggal_lahir: profil.tanggal_lahir ? String(profil.tanggal_lahir).slice(0, 10) : '',
-      jenis_kelamin: profil.jenis_kelamin || 'L',
-      no_telp: profil.no_telp || '',
-      nama_wali: profil.nama_wali || '',
-      alamat: profil.alamat || '',
-    });
-  }, [profil]);
-
-  const handleChangeDataDiri = (key, value) => {
-    setFormDataDiri((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleSaveDataDiri = async () => {
-    try {
-      setSavingDataDiri(true);
-      setDataDiriError('');
-      setDataDiriSuccess('');
-
-      const payload = {
-        nama_lengkap: formDataDiri.nama_lengkap.trim(),
-        email: formDataDiri.email.trim(),
-        nik: formDataDiri.nik.trim(),
-        tanggal_lahir: formDataDiri.tanggal_lahir,
-        jenis_kelamin: formDataDiri.jenis_kelamin,
-        no_telp: formDataDiri.no_telp.trim(),
-        nama_wali: formDataDiri.nama_wali.trim(),
-        alamat: formDataDiri.alamat.trim(),
-      };
-
-      const response = await AuthAPI.updateMe(payload);
-      const nextProfil = response.data.data;
-      setProfil(nextProfil);
-
-      const nextUser = {
-        id: nextProfil.id,
-        nama: nextProfil.nama_lengkap,
-        nama_lengkap: nextProfil.nama_lengkap,
-        email: nextProfil.email,
-        role: nextProfil.role,
-        is_active: nextProfil.is_active,
-        foto_profil: nextProfil.foto_profil || null,
-      };
-      localStorage.setItem('pkbm_user', JSON.stringify(nextUser));
-      setUser(nextUser);
-
-      setDataDiriSuccess('Data diri berhasil diperbarui.');
-      setEditDataDiriOpen(false);
-    } catch (err) {
-      setDataDiriError(err.response?.data?.message || 'Gagal menyimpan data diri.');
-    } finally {
-      setSavingDataDiri(false);
-    }
-  };
 
   // ── Render: Loading utama ────────────────────────────────
   if (loadingProfil) {
@@ -242,20 +175,42 @@ function DashboardSiswa() {
             </div>
           </div>
 
-          {/* ── Kartu Profil Singkat ── */}
-          <ProfileEditorCard
-            user={user}
-            onUserUpdate={setUser}
-            onProfileUpdate={(nextProfile) => setProfil(nextProfile)}
-          />
-
           {profil && (
             <div className="profil-card">
               <div className="profil-avatar">
-                {profil.nama_lengkap?.charAt(0)?.toUpperCase()}
+                {profil.foto_profil ? (
+                  <img
+                    src={toAssetUrl(profil.foto_profil)}
+                    alt={`Foto profil ${profil.nama_lengkap}`}
+                    className="profil-avatar-image"
+                  />
+                ) : (
+                  profil.nama_lengkap?.charAt(0)?.toUpperCase()
+                )}
               </div>
               <div className="profil-info">
-                <h2 className="profil-nama">{profil.nama_lengkap}</h2>
+                <div className="profil-header-top">
+                  <div>
+                    <h2 className="profil-nama">{profil.nama_lengkap}</h2>
+                    <p className="profil-role">{formatRole(user.role)}</p>
+                  </div>
+                  <ProfileEditorCard
+                    user={user}
+                    onUserUpdate={setUser}
+                    onProfileUpdate={(nextProfile) => setProfil(nextProfile)}
+                    hideCard
+                    triggerRenderer={(openModal) => (
+                      <button
+                        type="button"
+                        className="profil-edit-btn"
+                        onClick={openModal}
+                      >
+                        <i className="bi bi-pencil-square"></i>
+                        Edit Profil
+                      </button>
+                    )}
+                  />
+                </div>
                 <div className="profil-meta">
                   <span className="profil-meta-item">
                     <i className="bi bi-card-text"></i>
@@ -271,6 +226,10 @@ function DashboardSiswa() {
                       Rombel: {profil.nama_rombel}
                     </span>
                   )}
+                  <span className="profil-meta-item">
+                    <i className="bi bi-telephone"></i>
+                    {profil.no_telp || 'No. Telepon belum diisi'}
+                  </span>
                   <span className={`badge ${profil.is_aktif ? 'badge-success' : 'badge-danger'}`}>
                     {profil.is_aktif ? 'Aktif' : 'Tidak Aktif'}
                   </span>
@@ -293,7 +252,7 @@ function DashboardSiswa() {
                 ) : (
                   <>
                     <div className="stat-value" style={{ color: 'var(--color-siswa)' }}>
-                      {rekapAbsensi 
+                      {rekapAbsensi
                         ? `${rekapAbsensi.persentase_hadir || 0}%`
                         : '0%'}
                     </div>
@@ -404,134 +363,21 @@ function DashboardSiswa() {
                 </div>
               </div>
               <div className="profil-detail-grid">
-                <DetailItem label="Nama Lengkap"   value={profil.nama_lengkap} />
-                <DetailItem label="NIS"             value={profil.nis || 'Belum ditetapkan'} />
-                <DetailItem label="NIK"             value={profil.nik} />
-                <DetailItem label="Jenjang"         value={formatJenjang(profil.jenjang)} />
-                <DetailItem label="Tanggal Lahir"   value={formatTanggal(profil.tanggal_lahir)} />
-                <DetailItem label="Jenis Kelamin"   value={profil.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                <DetailItem label="No. Telepon"     value={profil.no_telp || '-'} />
-                <DetailItem label="Nama Wali"       value={profil.nama_wali || '-'} />
-                <DetailItem label="Alamat"          value={profil.alamat || '-'} colSpan={2} />
+                <DetailItem label="Nama Lengkap" value={profil.nama_lengkap} />
+                <DetailItem label="NIS" value={profil.nis || 'Belum ditetapkan'} />
+                <DetailItem label="NIK" value={profil.nik} />
+                <DetailItem label="Jenjang" value={formatJenjang(profil.jenjang)} />
+                <DetailItem label="Tanggal Lahir" value={formatTanggal(profil.tanggal_lahir)} />
+                <DetailItem label="Jenis Kelamin" value={profil.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
+                <DetailItem label="No. Telepon" value={profil.no_telp || '-'} />
+                <DetailItem label="Nama Wali" value={profil.nama_wali || '-'} />
+                <DetailItem label="Alamat" value={profil.alamat || '-'} colSpan={2} />
               </div>
-            </div>
-          )}
-
-          {dataDiriSuccess && (
-            <div className="alert alert-success" style={{ marginTop: '-1rem', marginBottom: '2rem' }}>
-              <i className="bi bi-check-circle-fill"></i>
-              <span>{dataDiriSuccess}</span>
             </div>
           )}
 
         </div>
       </main>
-
-      {editDataDiriOpen && (
-        <DataDiriModal
-          form={formDataDiri}
-          error={dataDiriError}
-          saving={savingDataDiri}
-          onClose={() => setEditDataDiriOpen(false)}
-          onChange={handleChangeDataDiri}
-          onSave={handleSaveDataDiri}
-        />
-      )}
-    </div>
-  );
-}
-
-function DataDiriModal({ form, error, saving, onClose, onChange, onSave }) {
-  return (
-    <div
-      className="app-modal-backdrop"
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(15, 23, 42, 0.45)',
-        backdropFilter: 'blur(4px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1100,
-        padding: '1rem',
-      }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div
-        className="app-modal-panel"
-        style={{
-          width: '100%',
-          maxWidth: 760,
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          background: 'var(--color-surface)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--color-border)',
-        }}
-      >
-        <div className="mobile-modal-header">
-          <h3 style={{ margin: 0, fontFamily: 'var(--font-heading)', fontSize: '1.05rem' }}>Edit Data Diri</h3>
-          <button type="button" onClick={onClose} style={{ border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '1.15rem', color: 'var(--color-text-muted)' }}>
-            <i className="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        <div className="mobile-modal-body">
-          <div className="grid-cols-2" style={{ marginBottom: '1rem' }}>
-            <div className="form-group">
-              <label className="form-label">Nama Lengkap <span className="required">*</span></label>
-              <input className="form-input" value={form.nama_lengkap} onChange={(e) => onChange('nama_lengkap', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Email <span className="required">*</span></label>
-              <input type="email" className="form-input" value={form.email} onChange={(e) => onChange('email', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">NIK</label>
-              <input className="form-input" maxLength={20} value={form.nik} onChange={(e) => onChange('nik', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">No. Telepon</label>
-              <input className="form-input" value={form.no_telp} onChange={(e) => onChange('no_telp', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Tanggal Lahir <span className="required">*</span></label>
-              <input type="date" className="form-input" value={form.tanggal_lahir} onChange={(e) => onChange('tanggal_lahir', e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Jenis Kelamin <span className="required">*</span></label>
-              <select className="form-input" value={form.jenis_kelamin} onChange={(e) => onChange('jenis_kelamin', e.target.value)}>
-                <option value="L">Laki-laki</option>
-                <option value="P">Perempuan</option>
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Nama Wali</label>
-              <input className="form-input" value={form.nama_wali} onChange={(e) => onChange('nama_wali', e.target.value)} />
-            </div>
-            <div className="form-group" style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Alamat</label>
-              <textarea className="form-input" rows={3} style={{ resize: 'vertical' }} value={form.alamat} onChange={(e) => onChange('alamat', e.target.value)} />
-            </div>
-          </div>
-
-          {error && (
-            <div className="alert alert-danger" style={{ marginBottom: '1rem' }}>
-              <i className="bi bi-exclamation-triangle-fill"></i>
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="mobile-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>Batal</button>
-            <button type="button" className="btn btn-primary" onClick={onSave} disabled={saving}>
-              {saving ? <><div className="spinner" style={{ width: 14, height: 14 }} /> Menyimpan...</> : <><i className="bi bi-check2"></i> Simpan Data Diri</>}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -554,6 +400,17 @@ function formatJenjang(jenjang) {
     paket_c: 'Paket C (Setara SMA)',
   };
   return map[jenjang] || jenjang || '—';
+}
+
+function formatRole(role) {
+  const map = {
+    warga_belajar: 'Warga Belajar',
+    admin: 'Admin TU & Keuangan',
+    tutor: 'Tutor',
+    pimpinan: 'Pimpinan',
+    super_admin: 'Super Admin',
+  };
+  return map[role] || role || 'Pengguna';
 }
 
 // ── Helper: Format tanggal ke Bahasa Indonesia ───────────────
