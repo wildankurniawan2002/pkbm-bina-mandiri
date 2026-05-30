@@ -9,6 +9,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthAPI } from '../../services/api.js';
+import gedungPkbm from '../../assets/gedung-pkbm.jpg';
+import logoPkbm from '../../assets/logo-pkbm.png';
 import './LoginPage.css';
 
 function LoginPage() {
@@ -68,33 +70,16 @@ function LoginPage() {
   return (
     <div className="login-page">
 
-      {/* Sisi kiri: branding & ilustrasi */}
+      {/* Sisi kiri: foto gedung */}
       <div className="login-branding">
-        <div className="login-branding-content">
-          <div className="login-logo">
-            <i className="bi bi-mortarboard-fill"></i>
-          </div>
-          <h1 className="login-title">PKBM Bina Mandiri</h1>
-          <p className="login-subtitle">
-            Ekosistem Digital Pendidikan Nonformal
-          </p>
-          <div className="login-features">
-            <div className="login-feature-item">
-              <i className="bi bi-check-circle-fill"></i>
-              <span>Manajemen SPMB Online</span>
-            </div>
-            <div className="login-feature-item">
-              <i className="bi bi-check-circle-fill"></i>
-              <span>KBM & LMS Terintegrasi</span>
-            </div>
-            <div className="login-feature-item">
-              <i className="bi bi-check-circle-fill"></i>
-              <span>Absensi Dual-Mode</span>
-            </div>
-            <div className="login-feature-item">
-              <i className="bi bi-check-circle-fill"></i>
-              <span>Ujian & Keuangan Digital</span>
-            </div>
+        <div className="login-branding-blur" style={{ backgroundImage: `url(${gedungPkbm})` }}></div>
+        <div className="login-branding-container">
+          <img src={logoPkbm} alt="Logo PKBM Bina Mandiri" className="login-branding-img" />
+          <div className="login-branding-info">
+            <h2 className="login-branding-tagline">"Pendidikan Setara, Masa Depan Gemilang"</h2>
+            <p className="login-branding-subtext">
+              Penyelenggara Resmi Program Pendidikan Kesetaraan Paket A, Paket B, dan Paket C di Bawah Naungan Dinas Pendidikan Kabupaten Sumedang.
+            </p>
           </div>
         </div>
       </div>

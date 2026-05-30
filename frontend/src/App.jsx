@@ -118,6 +118,12 @@ function SeoMetaManager() {
     let description = 'Platform digital PKBM Bina Mandiri untuk pendaftaran, pembelajaran, ujian, dan administrasi pendidikan nonformal.';
     let robots = 'index, follow';
 
+    const userRaw = localStorage.getItem('pkbm_user');
+    let user = null;
+    try {
+      user = JSON.parse(userRaw);
+    } catch (e) {}
+
     if (path === '/') {
       title = 'Login | PKBM Bina Mandiri';
       description = 'Masuk ke platform digital PKBM Bina Mandiri untuk mengakses pembelajaran, administrasi, dan layanan pendidikan.';
@@ -125,9 +131,24 @@ function SeoMetaManager() {
       title = 'Pendaftaran Warga Belajar Baru | PKBM Bina Mandiri';
       description = 'Daftar sebagai warga belajar baru PKBM Bina Mandiri secara online untuk Paket A, Paket B, dan Paket C.';
     } else if (path.startsWith('/dashboard')) {
-      title = 'Dashboard | PKBM Bina Mandiri';
-      description = 'Area dashboard internal PKBM Bina Mandiri untuk pengguna yang sudah masuk.';
       robots = 'index, follow';
+      description = 'Area dashboard internal PKBM Bina Mandiri untuk pengguna yang sudah masuk.';
+      
+      if (path === '/dashboard/siswa') {
+        title = 'Dashboard Siswa | PKBM Bina Mandiri';
+      } else if (path === '/dashboard/tutor') {
+        title = 'Dashboard Tutor | PKBM Bina Mandiri';
+      } else if (path === '/dashboard/pimpinan') {
+        title = 'Dashboard Pimpinan | PKBM Bina Mandiri';
+      } else if (path === '/dashboard/admin') {
+        if (user?.role === 'super_admin') {
+          title = 'Dashboard Super Admin | PKBM Bina Mandiri';
+        } else {
+          title = 'Dashboard Admin TU | PKBM Bina Mandiri';
+        }
+      } else {
+        title = 'Dashboard | PKBM Bina Mandiri';
+      }
     }
 
     document.title = title;
