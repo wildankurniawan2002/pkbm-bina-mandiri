@@ -7,8 +7,6 @@
 -- Server version: 8.0.30
 -- PHP Version: 8.2.30
 
-USE pkbm_bina_mandiri;
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -2045,7 +2043,7 @@ ALTER TABLE `warga_belajar`
 --
 DROP TABLE IF EXISTS `v_progres_belajar_wb`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_progres_belajar_wb`  AS SELECT `wb`.`id` AS `warga_belajar_id`, `u`.`nama_lengkap` AS `nama_lengkap`, `wb`.`jenjang` AS `jenjang`, `wb`.`rombel_id` AS `rombel_id`, count(distinct `mp`.`id`) AS `total_materi`, count(distinct (case when (`pm`.`status` = 'selesai') then `pm`.`materi_id` end)) AS `materi_selesai`, round(((count(distinct (case when (`pm`.`status` = 'selesai') then `pm`.`materi_id` end)) / nullif(count(distinct `mp`.`id`),0)) * 100),2) AS `persen_progres` FROM (((`warga_belajar` `wb` join `users` `u` on((`u`.`id` = `wb`.`user_id`))) left join `materi_pembelajaran` `mp` on(((`mp`.`rombel_id` = `wb`.`rombel_id`) and (`mp`.`is_published` = 1)))) left join `progres_materi` `pm` on(((`pm`.`materi_id` = `mp`.`id`) and (`pm`.`warga_belajar_id` = `wb`.`id`)))) WHERE (`wb`.`is_aktif` = 1) GROUP BY `wb`.`id`, `u`.`nama_lengkap`, `wb`.`jenjang`, `wb`.`rombel_id` ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_progres_belajar_wb`  AS SELECT `wb`.`id` AS `warga_belajar_id`, `u`.`nama_lengkap` AS `nama_lengkap`, `wb`.`jenjang` AS `jenjang`, `wb`.`rombel_id` AS `rombel_id`, count(distinct `mp`.`id`) AS `total_materi`, count(distinct (case when (`pm`.`status` = 'selesai') then `pm`.`materi_id` end)) AS `materi_selesai`, round(((count(distinct (case when (`pm`.`status` = 'selesai') then `pm`.`materi_id` end)) / nullif(count(distinct `mp`.`id`),0)) * 100),2) AS `persen_progres` FROM (((`warga_belajar` `wb` join `users` `u` on((`u`.`id` = `wb`.`user_id`))) left join `materi_pembelajaran` `mp` on(((`mp`.`rombel_id` = `wb`.`rombel_id`) and (`mp`.`is_published` = 1)))) left join `progres_materi` `pm` on(((`pm`.`materi_id` = `mp`.`id`) and (`pm`.`warga_belajar_id` = `wb`.`id`)))) WHERE (`wb`.`is_aktif` = 1) GROUP BY `wb`.`id`, `u`.`nama_lengkap`, `wb`.`jenjang`, `wb`.`rombel_id` ;
 
 -- --------------------------------------------------------
 
@@ -2054,7 +2052,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_ringkasan_keuangan_bulanan`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_ringkasan_keuangan_bulanan`  AS SELECT date_format(`ts`.`tanggal_jatuh_tempo`,'%Y-%m') AS `bulan`, sum(`ts`.`jumlah`) AS `total_tagihan`, coalesce(sum(`p`.`jumlah_bayar`),0) AS `total_terbayar`, (sum(`ts`.`jumlah`) - coalesce(sum(`p`.`jumlah_bayar`),0)) AS `total_tunggakan` FROM (`tagihan_siswa` `ts` left join `pembayaran` `p` on(((`p`.`tagihan_id` = `ts`.`id`) and (`p`.`status_konfirmasi` = 'terkonfirmasi')))) GROUP BY date_format(`ts`.`tanggal_jatuh_tempo`,'%Y-%m') ORDER BY `bulan` DESC ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_ringkasan_keuangan_bulanan`  AS SELECT date_format(`ts`.`tanggal_jatuh_tempo`,'%Y-%m') AS `bulan`, sum(`ts`.`jumlah`) AS `total_tagihan`, coalesce(sum(`p`.`jumlah_bayar`),0) AS `total_terbayar`, (sum(`ts`.`jumlah`) - coalesce(sum(`p`.`jumlah_bayar`),0)) AS `total_tunggakan` FROM (`tagihan_siswa` `ts` left join `pembayaran` `p` on(((`p`.`tagihan_id` = `ts`.`id`) and (`p`.`status_konfirmasi` = 'terkonfirmasi')))) GROUP BY date_format(`ts`.`tanggal_jatuh_tempo`,'%Y-%m') ORDER BY `bulan` DESC ;
 
 -- --------------------------------------------------------
 
@@ -2063,7 +2061,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_ringkasan_wb_per_jenjang`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_ringkasan_wb_per_jenjang`  AS SELECT `wb`.`jenjang` AS `jenjang`, count(0) AS `total_wb_aktif` FROM `warga_belajar` AS `wb` WHERE (`wb`.`is_aktif` = 1) GROUP BY `wb`.`jenjang` ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_ringkasan_wb_per_jenjang`  AS SELECT `wb`.`jenjang` AS `jenjang`, count(0) AS `total_wb_aktif` FROM `warga_belajar` AS `wb` WHERE (`wb`.`is_aktif` = 1) GROUP BY `wb`.`jenjang` ;
 
 -- --------------------------------------------------------
 
@@ -2072,7 +2070,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_spmb_statistik`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_spmb_statistik`  AS SELECT count(0) AS `total_pendaftar`, sum((case when (`pendaftar_spmb`.`status` = 'pending') then 1 else 0 end)) AS `pending`, sum((case when (`pendaftar_spmb`.`status` = 'diterima') then 1 else 0 end)) AS `diterima`, sum((case when (`pendaftar_spmb`.`status` = 'ditolak') then 1 else 0 end)) AS `ditolak` FROM `pendaftar_spmb` ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_spmb_statistik`  AS SELECT count(0) AS `total_pendaftar`, sum((case when (`pendaftar_spmb`.`status` = 'pending') then 1 else 0 end)) AS `pending`, sum((case when (`pendaftar_spmb`.`status` = 'diterima') then 1 else 0 end)) AS `diterima`, sum((case when (`pendaftar_spmb`.`status` = 'ditolak') then 1 else 0 end)) AS `ditolak` FROM `pendaftar_spmb` ;
 
 -- --------------------------------------------------------
 
@@ -2081,7 +2079,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_tingkat_kehadiran_per_rombel`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_tingkat_kehadiran_per_rombel`  AS SELECT `r`.`id` AS `rombel_id`, `r`.`nama_rombel` AS `nama_rombel`, `r`.`jenjang` AS `jenjang`, count(`rk`.`id`) AS `total_rekaman`, sum((case when (`rk`.`status` = 'hadir') then 1 else 0 end)) AS `total_hadir`, round(((sum((case when (`rk`.`status` = 'hadir') then 1 else 0 end)) / nullif(count(`rk`.`id`),0)) * 100),2) AS `persen_kehadiran` FROM ((`rombel` `r` left join `sesi_absensi` `sa` on((`sa`.`rombel_id` = `r`.`id`))) left join `rekaman_kehadiran` `rk` on((`rk`.`sesi_id` = `sa`.`id`))) GROUP BY `r`.`id`, `r`.`nama_rombel`, `r`.`jenjang` ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_tingkat_kehadiran_per_rombel`  AS SELECT `r`.`id` AS `rombel_id`, `r`.`nama_rombel` AS `nama_rombel`, `r`.`jenjang` AS `jenjang`, count(`rk`.`id`) AS `total_rekaman`, sum((case when (`rk`.`status` = 'hadir') then 1 else 0 end)) AS `total_hadir`, round(((sum((case when (`rk`.`status` = 'hadir') then 1 else 0 end)) / nullif(count(`rk`.`id`),0)) * 100),2) AS `persen_kehadiran` FROM ((`rombel` `r` left join `sesi_absensi` `sa` on((`sa`.`rombel_id` = `r`.`id`))) left join `rekaman_kehadiran` `rk` on((`rk`.`sesi_id` = `sa`.`id`))) GROUP BY `r`.`id`, `r`.`nama_rombel`, `r`.`jenjang` ;
 
 -- --------------------------------------------------------
 
@@ -2090,7 +2088,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 DROP TABLE IF EXISTS `v_tunggakan_per_wb`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `v_tunggakan_per_wb`  AS SELECT `wb`.`id` AS `warga_belajar_id`, `u`.`nama_lengkap` AS `nama_lengkap`, `wb`.`nis` AS `nis`, `wb`.`jenjang` AS `jenjang`, `ts`.`id` AS `tagihan_id`, `ts`.`jenis_tagihan` AS `jenis_tagihan`, `ts`.`jumlah` AS `jumlah`, `ts`.`tanggal_jatuh_tempo` AS `tanggal_jatuh_tempo`, `ts`.`status` AS `status_tagihan`, (to_days(curdate()) - to_days(`ts`.`tanggal_jatuh_tempo`)) AS `hari_terlambat` FROM ((`tagihan_siswa` `ts` join `warga_belajar` `wb` on((`wb`.`id` = `ts`.`warga_belajar_id`))) join `users` `u` on((`u`.`id` = `wb`.`user_id`))) WHERE (`ts`.`status` in ('belum_bayar','sebagian')) ORDER BY (to_days(curdate()) - to_days(`ts`.`tanggal_jatuh_tempo`)) DESC ;
+CREATE ALGORITHM=UNDEFINED  SQL SECURITY DEFINER VIEW `v_tunggakan_per_wb`  AS SELECT `wb`.`id` AS `warga_belajar_id`, `u`.`nama_lengkap` AS `nama_lengkap`, `wb`.`nis` AS `nis`, `wb`.`jenjang` AS `jenjang`, `ts`.`id` AS `tagihan_id`, `ts`.`jenis_tagihan` AS `jenis_tagihan`, `ts`.`jumlah` AS `jumlah`, `ts`.`tanggal_jatuh_tempo` AS `tanggal_jatuh_tempo`, `ts`.`status` AS `status_tagihan`, (to_days(curdate()) - to_days(`ts`.`tanggal_jatuh_tempo`)) AS `hari_terlambat` FROM ((`tagihan_siswa` `ts` join `warga_belajar` `wb` on((`wb`.`id` = `ts`.`warga_belajar_id`))) join `users` `u` on((`u`.`id` = `wb`.`user_id`))) WHERE (`ts`.`status` in ('belum_bayar','sebagian')) ORDER BY (to_days(curdate()) - to_days(`ts`.`tanggal_jatuh_tempo`)) DESC ;
 
 --
 -- Constraints for dumped tables
