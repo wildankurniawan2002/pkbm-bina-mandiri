@@ -14,9 +14,9 @@ function DashboardAdmin() {
   const [user, setUser] = useState(() => JSON.parse(localStorage.getItem('pkbm_user') || '{}'));
 
   // State untuk statistik SPMB
-  const [statSpmb, setStatSpmb]   = useState(null);
+  const [statSpmb, setStatSpmb] = useState(null);
   const [statSiswa, setStatSiswa] = useState(null);
-  const [loading, setLoading]     = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,7 +47,7 @@ function DashboardAdmin() {
 
           <div style={{ marginBottom: '2rem' }}>
             <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: 'var(--text-2xl)', fontWeight: 800 }}>
-              Dashboard Admin TU & Keuangan
+              {user.role === 'super_admin' ? 'Dashboard Super Admin' : 'Dashboard Admin TU & Keuangan'}
             </h1>
             <p style={{ color: 'var(--color-text-muted)', marginTop: 4 }}>
               Selamat datang, {user.nama_lengkap || user.nama}. Berikut ringkasan harian.
@@ -79,15 +79,43 @@ function DashboardAdmin() {
                   <h3 className="card-title">Aksi Cepat</h3>
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                  <a href="/dashboard/admin/spmb" className="btn btn-primary">
-                    <i className="bi bi-person-check"></i> Verifikasi SPMB
-                  </a>
-                  <a href="/dashboard/admin/tagihan" className="btn btn-secondary">
-                    <i className="bi bi-cash-stack"></i> Kelola Tagihan
-                  </a>
-                  <a href="/dashboard/admin/siswa" className="btn btn-secondary">
-                    <i className="bi bi-people"></i> Data Siswa
-                  </a>
+                  {user.role === 'super_admin' ? (
+                    <>
+                      <a href="/dashboard/admin/users" className="btn btn-secondary">
+                        <i className="bi bi-shield-lock-fill"></i> Manajemen User
+                      </a>
+                      <a href="/dashboard/admin/master-mapel" className="btn btn-secondary">
+                        <i className="bi bi-journal-bookmark-fill"></i> Master Mapel
+                      </a>
+                      <a href="/dashboard/admin/mapel-rombel" className="btn btn-secondary">
+                        <i className="bi bi-diagram-3-fill"></i> Mapel per Rombel
+                      </a>
+                      <a href="/dashboard/admin/spmb" className="btn btn-secondary">
+                        <i className="bi bi-person-check"></i> Verifikasi SPMB
+                      </a>
+                      <a href="/dashboard/admin/siswa" className="btn btn-secondary">
+                        <i className="bi bi-people"></i> Data Siswa
+                      </a>
+                      <a href="/dashboard/admin/periode-ujian" className="btn btn-secondary">
+                        <i className="bi bi-calendar3"></i> Periode Ujian
+                      </a>
+                      <a href="/dashboard/admin/tagihan" className="btn btn-secondary">
+                        <i className="bi bi-cash-stack"></i> Kelola Tagihan
+                      </a>
+                    </>
+                  ) : (
+                    <>
+                      <a href="/dashboard/admin/spmb" className="btn btn-secondary">
+                        <i className="bi bi-person-check"></i> Verifikasi SPMB
+                      </a>
+                      <a href="/dashboard/admin/tagihan" className="btn btn-secondary">
+                        <i className="bi bi-cash-stack"></i> Kelola Tagihan
+                      </a>
+                      <a href="/dashboard/admin/siswa" className="btn btn-secondary">
+                        <i className="bi bi-people"></i> Data Siswa
+                      </a>
+                    </>
+                  )}
                 </div>
               </div>
             </>

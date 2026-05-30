@@ -522,6 +522,14 @@ export const AkademikAPI = {
 
   getTutorOptions: () =>
     apiClient.get('/akademik/options/tutor'),
+
+  getRps: (rombelId, mapelId) =>
+    apiClient.get('/akademik/rps', { params: { rombel_id: rombelId, mapel_id: mapelId } }),
+
+  uploadRps: (formData) =>
+    apiClient.post('/akademik/rps', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
 };
 
 

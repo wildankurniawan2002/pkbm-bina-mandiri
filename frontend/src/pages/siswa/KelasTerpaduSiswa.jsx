@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar.jsx';
-import apiClient, { PertemuanAPI, LmsAPI, AbsensiAPI, SiswaAPI, UjianAPI } from '../../services/api.js';
+import apiClient, { PertemuanAPI, LmsAPI, AbsensiAPI, SiswaAPI, UjianAPI, AkademikAPI } from '../../services/api.js';
 
 function toAssetUrl(path) {
   if (!path) return '';
@@ -100,6 +100,72 @@ function KelasTerpaduSiswa() {
   const [absensiTimer, setAbsensiTimer] = useState(15);
   const [submittingAbsensi, setSubmittingAbsensi] = useState(false);
 
+  // RPS (Rencana Pembelajaran Semester) States
+  const [rpsPath, setRpsPath] = useState(null);
+  const [loadingRps, setLoadingRps] = useState(false);
+  const [uploadingRps, setUploadingRps] = useState(false);
+  const [rpsFile, setRpsFile] = useState(null);
+  const [rpsMessage, setRpsMessage] = useState('');
+
+  const fetchRps = async (rombelId) => {
+    if (!rombelId || !mapelId) return;
+    try {
+      setLoadingRps(true);
+      const res = await AkademikAPI.getRps(rombelId, mapelId);
+      if (res.data && res.data.success) {
+        setRpsPath(res.data.data.rps_file_path);
+      }
+    } catch (e) {
+      console.warn('Gagal memuat RPS:', e);
+      setRpsPath(null);
+    } finally {
+      setLoadingRps(false);
+    }
+  };
+
+  const handleUploadRps = async (e) => {
+    e.preventDefault();
+    if (!rpsFile) return;
+
+    let rombelId = searchParams.get('rombel_id');
+    if (!rombelId && user.role === 'warga_belajar') {
+      try {
+        const profilRes = await SiswaAPI.getProfilSaya();
+        rombelId = profilRes.data.data?.rombel_id;
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    if (!rombelId) {
+      setRpsMessage('Data Rombel tidak ditemukan.');
+      return;
+    }
+
+    try {
+      setUploadingRps(true);
+      setRpsMessage('');
+      const formData = new FormData();
+      formData.append('rombel_id', rombelId);
+      formData.append('mapel_id', mapelId);
+      formData.append('rps', rpsFile);
+
+      const res = await AkademikAPI.uploadRps(formData);
+      if (res.data && res.data.success) {
+        setRpsPath(res.data.data.rps_file_path);
+        setRpsMessage('RPS berhasil diunggah!');
+        setRpsFile(null);
+        // Clear message after 3 seconds
+        setTimeout(() => setRpsMessage(''), 3000);
+      }
+    } catch (err) {
+      console.error('Error uploading RPS:', err);
+      setRpsMessage(err.response?.data?.message || 'Gagal mengunggah RPS.');
+    } finally {
+      setUploadingRps(false);
+    }
+  };
+
   const syncRekapKehadiran = async () => {
     const rekapRes = await AbsensiAPI.getRekapSaya();
     const rekapData = rekapRes.data?.data;
@@ -183,6 +249,9 @@ function KelasTerpaduSiswa() {
         if (listPertemuan.length > 0) {
           setActivePertemuanId(listPertemuan[0].id);
         }
+
+        // Fetch RPS
+        await fetchRps(rombelId);
       } catch (err) {
         console.error('[KelasTerpaduSiswa] Error:', err);
         setError(err.response?.data?.message || 'Gagal memuat kelas belajar.');
@@ -1870,40 +1939,189 @@ function KelasTerpaduSiswa() {
                   {/* WIDGET 1: DOKUMEN RPS */}
                   <div style={{
                     background: 'white',
-                        borderRadius: '12px',
-                        padding: '1.25rem',
-                        border: '1px solid #E2E8F0'
+                    borderRadius: '12px',
+                    padding: '1.25rem',
+                    border: '1px solid #E2E8F0'
                   }}>
                     <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: '#1E293B', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <i className="bi bi-file-earmark-text" style={{ color: '#2563EB' }}></i>
                       <span>Rencana Belajar (RPS)</span>
                     </h4>
                     <p style={{ fontSize: '0.75rem', color: '#64748B', lineHeight: 1.4, margin: '0 0 12px 0' }}>
-                      Unduh Rencana Pembelajaran Semester (RPS) mata pelajaran ini sebagai acuan kurikulum Anda.
+                      {user.role === 'tutor' || user.role === 'admin' || user.role === 'super_admin'
+                        ? 'Unggah atau kelola file Rencana Pembelajaran Semester (RPS) untuk mata pelajaran ini.'
+                        : 'Unduh Rencana Pembelajaran Semester (RPS) mata pelajaran ini sebagai acuan kurikulum Anda.'}
                     </p>
-                    <a
-                      href="#"
-                      onClick={(e) => { e.preventDefault(); alert('RPS belum diunggah oleh Tutor.'); }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        background: '#F8FAFC',
-                        border: '1px solid #E2E8F0',
-                        borderRadius: '10px',
-                        padding: '10px 12px',
-                        color: '#334155',
-                        fontWeight: 600,
-                        fontSize: '0.8rem',
-                        textDecoration: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                    >
-                      <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '180px' }}>
-                        RPS-{mapel?.nama || 'Kelas'}.pdf
-                      </span>
-                      <i className="bi bi-download" style={{ color: '#3B82F6' }}></i>
-                    </a>
+
+                    {loadingRps ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', fontSize: '0.75rem', color: '#64748B' }}>
+                        <div className="spinner-border spinner-border-sm text-primary" role="status" style={{ width: '1rem', height: '1rem' }}></div>
+                        <span>Memuat dokumen...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Jika RPS sudah diunggah */}
+                        {rpsPath ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            <a
+                              href={toAssetUrl(rpsPath)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                background: '#EFF6FF',
+                                border: '1px solid #BFDBFE',
+                                borderRadius: '10px',
+                                padding: '10px 12px',
+                                color: '#1E40AF',
+                                fontWeight: 600,
+                                fontSize: '0.8rem',
+                                textDecoration: 'none',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '180px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <i className="bi bi-file-pdf-fill" style={{ color: '#EF4444', fontSize: '1rem' }}></i>
+                                RPS-{mapel?.nama || 'Kelas'}.pdf
+                              </span>
+                              <i className="bi bi-download" style={{ color: '#1E40AF' }}></i>
+                            </a>
+
+                            {/* Tombol ganti RPS untuk Tutor/Admin */}
+                            {(user.role === 'tutor' || user.role === 'admin' || user.role === 'super_admin') && (
+                              <form onSubmit={handleUploadRps} style={{ marginTop: '8px', borderTop: '1px dashed #E2E8F0', paddingTop: '10px' }}>
+                                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 700, color: '#64748B', marginBottom: '6px' }}>GANTI DENGAN RPS BARU (PDF):</label>
+                                <div style={{ display: 'flex', gap: '6px' }}>
+                                  <input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={(e) => setRpsFile(e.target.files[0])}
+                                    style={{ fontSize: '0.75rem', width: '100%', padding: '4px 0' }}
+                                    required
+                                  />
+                                </div>
+                                {rpsFile && (
+                                  <button
+                                    type="submit"
+                                    disabled={uploadingRps}
+                                    style={{
+                                      marginTop: '8px',
+                                      width: '100%',
+                                      background: '#2563EB',
+                                      color: 'white',
+                                      border: 'none',
+                                      padding: '6px 12px',
+                                      borderRadius: '8px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 600,
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    {uploadingRps ? 'Mengunggah...' : 'Perbarui RPS'}
+                                  </button>
+                                )}
+                              </form>
+                            )}
+                          </div>
+                        ) : (
+                          /* Jika RPS belum diunggah */
+                          <>
+                            {user.role === 'tutor' || user.role === 'admin' || user.role === 'super_admin' ? (
+                              <form onSubmit={handleUploadRps} style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <div style={{
+                                  border: '2px dashed #CBD5E1',
+                                  borderRadius: '10px',
+                                  padding: '12px',
+                                  textAlign: 'center',
+                                  background: '#F8FAFC',
+                                  cursor: 'pointer',
+                                  position: 'relative'
+                                }}>
+                                  <i className="bi bi-cloud-upload-fill" style={{ fontSize: '1.5rem', color: '#64748B' }}></i>
+                                  <p style={{ margin: '4px 0 0 0', fontSize: '0.75rem', color: '#64748B', fontWeight: 600 }}>Pilih File RPS (PDF)</p>
+                                  <input
+                                    type="file"
+                                    accept=".pdf"
+                                    onChange={(e) => setRpsFile(e.target.files[0])}
+                                    style={{
+                                      position: 'absolute',
+                                      top: 0,
+                                      left: 0,
+                                      width: '100%',
+                                      height: '100%',
+                                      opacity: 0,
+                                      cursor: 'pointer'
+                                    }}
+                                    required
+                                  />
+                                </div>
+                                {rpsFile && (
+                                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#F1F5F9', padding: '6px 10px', borderRadius: '8px', fontSize: '0.7rem', color: '#475569' }}>
+                                    <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '160px' }}>{rpsFile.name}</span>
+                                    <button type="button" onClick={() => setRpsFile(null)} style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: 0 }}><i className="bi bi-trash"></i></button>
+                                  </div>
+                                )}
+                                <button
+                                  type="submit"
+                                  disabled={uploadingRps || !rpsFile}
+                                  style={{
+                                    width: '100%',
+                                    background: '#2563EB',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px',
+                                    borderRadius: '8px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    transition: 'background 0.2s'
+                                  }}
+                                >
+                                  {uploadingRps ? 'Mengunggah...' : 'Unggah RPS'}
+                                </button>
+                              </form>
+                            ) : (
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: '#F8FAFC',
+                                  border: '1px dashed #E2E8F0',
+                                  borderRadius: '10px',
+                                  padding: '12px',
+                                  color: '#94A3B8',
+                                  fontWeight: 500,
+                                  fontSize: '0.75rem',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                <i className="bi bi-info-circle" style={{ marginRight: 6 }}></i>
+                                RPS belum diunggah oleh Tutor.
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {/* Tampilkan pesan feedback sukses/error */}
+                        {rpsMessage && (
+                          <div style={{
+                            marginTop: '8px',
+                            padding: '6px 10px',
+                            borderRadius: '8px',
+                            fontSize: '0.7rem',
+                            textAlign: 'center',
+                            background: rpsMessage.includes('berhasil') ? '#DCFCE7' : '#FEE2E2',
+                            color: rpsMessage.includes('berhasil') ? '#15803D' : '#B91C1C',
+                            border: `1px solid ${rpsMessage.includes('berhasil') ? '#86EFAC' : '#FCA5A5'}`
+                          }}>
+                            {rpsMessage}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* WIDGET 2: RINGKASAN KEHADIRAN MAPEL */}
