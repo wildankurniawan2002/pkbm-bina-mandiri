@@ -82,10 +82,11 @@ export default function HomePage() {
   const navScrolled = scrollY > 80;
 
   return (
-    <div style={{ fontFamily: "'Segoe UI', system-ui, sans-serif", background: "#FAFFF9", color: "#1a1a1a", overflowX: "hidden" }}>
+    <div style={{ fontFamily: "'Source Sans Pro', -apple-system, sans-serif", background: "#FAFFF9", color: "#1a1a1a", overflowX: "hidden" }}>
       <style>{`
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         html { scroll-behavior: smooth; }
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;500;600;700;800;900&display=swap');
 
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(32px); }
@@ -105,11 +106,13 @@ export default function HomePage() {
         .anim-sc   { animation: scaleIn 0.5s ease both; }
 
         .nav-a {
-          text-decoration: none; font-weight: 500; font-size: 0.9rem;
+          text-decoration: none; font-weight: 600; font-size: 0.9rem;
           padding: 4px 0; border-bottom: 2px solid transparent;
           transition: color 0.2s, border-color 0.2s;
+          text-shadow: 0 1px 4px rgba(0,0,0,0.45);
         }
         .nav-a:hover { border-bottom-color: currentColor; }
+        .nav-a-scrolled { text-shadow: none !important; }
 
         .btn-solid {
           display: inline-block; text-decoration: none;
@@ -150,7 +153,8 @@ export default function HomePage() {
 
         .faq-btn {
           width: 100%; background: none; border: none; text-align: left;
-          padding: 20px 0; cursor: pointer; font-family: inherit;
+          padding: 20px 0; cursor: pointer;
+          font-family: 'Source Sans Pro', -apple-system, sans-serif;
           font-size: 0.97rem; font-weight: 600; color: #1a1a1a;
           display: flex; justify-content: space-between; align-items: center; gap: 16px;
         }
@@ -159,7 +163,8 @@ export default function HomePage() {
         .inp {
           width: 100%; padding: 12px 16px;
           border: 1.5px solid #d0e8d8; border-radius: 6px;
-          font-family: inherit; font-size: 0.93rem; outline: none;
+          font-family: 'Source Sans Pro', -apple-system, sans-serif;
+          font-size: 0.93rem; outline: none;
           transition: border-color 0.2s;
           background: #fff;
         }
@@ -183,7 +188,7 @@ export default function HomePage() {
       {/* ══ NAVBAR ══════════════════════════════════════════════ */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 999,
-        background: navScrolled ? "rgba(255,255,255,0.97)" : "transparent",
+        background: navScrolled ? "rgba(255,255,255,0.97)" : "linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 100%)",
         borderBottom: navScrolled ? `1px solid ${GL}` : "none",
         backdropFilter: navScrolled ? "blur(12px)" : "none",
         transition: "background 0.35s, border 0.35s",
@@ -195,15 +200,15 @@ export default function HomePage() {
           <Link to="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
             <img src="/images/logo_pkbm.jpg" alt="Logo PKBM" style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: `2px solid ${navScrolled ? GL : "rgba(255,255,255,0.4)"}` }} />
             <div>
-              <div style={{ fontWeight: 800, fontSize: "0.92rem", color: navScrolled ? G : "#fff", lineHeight: 1.15, transition: "color 0.3s" }}>PKBM Bina Mandiri</div>
-              <div style={{ fontSize: "0.67rem", color: navScrolled ? "#888" : "rgba(255,255,255,0.7)", transition: "color 0.3s" }}>Kab. Sumedang · Jawa Barat</div>
+              <div style={{ fontWeight: 800, fontSize: "0.92rem", color: navScrolled ? G : "#fff", lineHeight: 1.15, transition: "color 0.3s", textShadow: navScrolled ? "none" : "0 1px 4px rgba(0,0,0,0.5)" }}>PKBM Bina Mandiri</div>
+              <div style={{ fontSize: "0.67rem", color: navScrolled ? "#888" : "rgba(255,255,255,0.9)", transition: "color 0.3s", textShadow: navScrolled ? "none" : "0 1px 3px rgba(0,0,0,0.5)" }}>Kab. Sumedang · Jawa Barat</div>
             </div>
           </Link>
 
           {/* Desktop nav */}
           <nav className="desk-nav" style={{ display: "flex", alignItems: "center", gap: 32 }}>
             {[["#profil","Profil"],["#program","Program"],["#keunggulan","Keunggulan"],["#galeri","Galeri"],["#faq","FAQ"],["#kontak","Kontak"]].map(([h,l]) => (
-              <a key={l} href={h} className="nav-a" style={{ color: navScrolled ? "#333" : "rgba(255,255,255,0.9)" }}>{l}</a>
+              <a key={l} href={h} className={`nav-a${navScrolled ? " nav-a-scrolled" : ""}`} style={{ color: navScrolled ? "#333" : "#fff" }}>{l}</a>
             ))}
             <div style={{ width: 1, height: 20, background: navScrolled ? "#ddd" : "rgba(255,255,255,0.3)" }} />
             <Link to="/login" className="nav-a" style={{ color: navScrolled ? G : "rgba(255,255,255,0.9)" }}>Masuk</Link>
@@ -330,9 +335,6 @@ export default function HomePage() {
             {/* Brosur / Foto */}
             <div style={{ position: "relative" }}>
               <img src="/images/brosur.jpg" alt="Brosur PKBM" style={{ width: "100%", borderRadius: 16, objectFit: "cover", boxShadow: `0 24px 64px rgba(27,77,53,0.18)` }} />
-              <div style={{ position: "absolute", bottom: -16, left: -16, background: G, color: "#fff", padding: "16px 22px", borderRadius: 10, fontSize: "0.85rem", fontWeight: 700, boxShadow: `0 8px 24px rgba(27,77,53,0.3)` }}>
-                SPP Gratis<br /><span style={{ fontWeight: 400, fontSize: "0.76rem", opacity: 0.8 }}>untuk warga belajar baru</span>
-              </div>
             </div>
           </div>
         </div>
@@ -544,6 +546,52 @@ export default function HomePage() {
                 <textarea className="inp" placeholder="Tulis pesan atau pertanyaan kamu..." rows={4} style={{ resize: "vertical" }} />
                 <button className="btn-solid" style={{ width: "100%", padding: 13, textAlign: "center" }}>Kirim Pesan</button>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ LOKASI / MAPS ═══════════════════════════════════════ */}
+      <section style={{ padding: "0", background: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "80px clamp(16px,4vw,48px) 0" }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <div style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: 2, color: GM, marginBottom: 10, textTransform: "uppercase" }}>Lokasi Kami</div>
+            <h2 style={{ fontSize: "clamp(1.6rem,3vw,2.2rem)", fontWeight: 800, color: "#1a1a1a" }}>Temukan PKBM Bina Mandiri</h2>
+            <p style={{ color: "#666", marginTop: 10, fontSize: "0.93rem" }}>Kabupaten Sumedang, Jawa Barat</p>
+          </div>
+        </div>
+
+        {/* Maps embed full width */}
+        <div style={{ position: "relative", width: "100%", height: 420 }}>
+          <iframe
+            title="Lokasi PKBM Bina Mandiri"
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126748.3942944168!2d107.8623!3d-6.8549!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e1e3c4a3c1b1%3A0x1234567890abcdef!2sPKBM%20Bina%20Mandiri!5e0!3m2!1sid!2sid!4v1234567890"
+            width="100%"
+            height="420"
+            style={{ border: 0, display: "block", filter: "saturate(0.85)" }}
+            allowFullScreen=""
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+          {/* Info card di atas maps */}
+          <div style={{
+            position: "absolute", top: 20, right: "clamp(16px,4vw,48px)",
+            background: "#fff", borderRadius: 12, padding: "18px 22px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+            maxWidth: 280, zIndex: 10,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+              <img src="/images/logo_pkbm.jpg" alt="Logo" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
+              <div>
+                <div style={{ fontWeight: 800, fontSize: "0.88rem", color: G }}>PKBM Bina Mandiri</div>
+                <div style={{ fontSize: "0.7rem", color: "#888" }}>Pendidikan Kesetaraan</div>
+              </div>
+            </div>
+            <div style={{ fontSize: "0.8rem", color: "#555", lineHeight: 1.6, marginBottom: 12 }}>
+              📍 Kabupaten Sumedang,<br />Jawa Barat
+            </div>
+            <div style={{ fontSize: "0.78rem", color: "#666", marginBottom: 4 }}>
+              🕐 Senin–Jumat, 08.00–16.00 WIB
             </div>
           </div>
         </div>
